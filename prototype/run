@@ -1,0 +1,5 @@
+#! /bin/bash
+
+cd bin/
+
+java engine.Main ../res/zkc_feats ../res/zkc_edges

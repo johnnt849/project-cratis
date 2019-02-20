@@ -1,0 +1,5 @@
+#! /bin/bash
+
+cd src
+
+javac -d ../bin -sourcepath src $(find . -name "*.java")
