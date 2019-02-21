@@ -1,5 +1,9 @@
 #! /bin/bash
 
+if [ ! -d classes/ ]; then
+	mkdir classes
+fi
+
 cd src
 
-javac -d ../bin -sourcepath src $(find . -name "*.java")
+javac -d ../classes -sourcepath src $(find . -name "*.java")

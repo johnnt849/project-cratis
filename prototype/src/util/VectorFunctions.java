@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import util.DimensionMismatchException;
 
 public class VectorFunctions {
-	// VECTOR OPERATIONS
+	// ====== VECTOR OPERATIONS ======
 	public static ArrayList<Double> multiplyByScalar(double scalar, ArrayList<Double> vector) {
 		ArrayList<Double> result = new ArrayList<Double>(vector.size());
 		for (double d: vector) result.add(scalar * d);
@@ -56,7 +56,14 @@ public class VectorFunctions {
 		return result;
 	}
 
-	// NEURAL NETWORK FUNCTIONS
+	// ====== NEURAL NETWORK FUNCTIONS ======
+	// Output Evaluation
+	/**
+	* Converts an array of output activations to precidctions of which
+	* class the Vertex is in (all rows sum to 1)
+	* @param ArrayList<Double> vector		Activation vector corresponding to vertex
+	* @return ArrayList<Double> 
+	*/
 	public static ArrayList<Double> softmax(ArrayList<Double> vector) {
 		ArrayList<Double> result = new ArrayList<Double>(vector.size());
 
@@ -67,8 +74,51 @@ public class VectorFunctions {
 		return result;
 	}
 
+	/**
+	* Predicts the output loss for one Vertex given its softmax predictions and 
+	* its classification
+	* @param ArrayList<Double>		Predictions produced by softmax
+	* @return double				Loss for specific Vertex
+	*/
+	public static double cross_entropy(ArrayList<Double> preds, int classification) {
+		// This will only work for BINARY classification
+		return (-Math.log(preds.get(classification)));
+	}
 
-	// UTILITY FUNCTION
+	// Backpropagation
+	/**
+	* Derivative of the activation function
+	*/
+	public static double derivTanh(double d) {
+		return (1 - Math.pow(Math.tanh(d), 2));
+	}
+
+	/**
+	* Apply the derivative of the activation to all elements in a Vertex activation
+	*/
+	public static ArrayList<Double> activationPrime(ArrayList<Double> activations) {
+		ArrayList<Double> result = new ArrayList<Double>(activations.size());
+		for (double d: activations) result.add(derivTanh(d));
+
+		return result;
+	}
+
+	/**
+	* Apply the derivate of the cross entropy with softmax function to the output and divide
+	* by batch size
+	* Deriv of cross ent w/ softmax: p_i - y_i 
+	* @param trainSize		The number of training examples
+	*/
+	public static ArrayList<Double> deltaCrossEntropy(ArrayList<Double> preds, int classification, int trainSize) {
+		ArrayList<Double> result = new ArrayList<Double>(preds);
+		result.set(classification, result.get(classification) - 1);
+
+		result.replaceAll(d -> (d / trainSize));
+		return result;
+	}
+
+
+	// ====== UTILITY FUNCTION ======
 	public static void printVector(ArrayList<Double> vector) {
 		for (double d: vector) {
 			System.out.print(Double.toString(d) + " ");

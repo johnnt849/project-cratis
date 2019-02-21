@@ -78,9 +78,9 @@ public class Vertex {
 	// getters
 	public int getVertexId() { return vertexId; }
 	public int getClassification() { return classification; }
-	public ArrayList<Double> getFeatures(int layer) { return activations.get(layer); }
+	public ArrayList<Double> getActivations(int layer) { return activations.get(layer); }
 	public ArrayList<Double> getInputFeatures() { return features; }
-	public ArrayList<Double> getCurrentFeatures() { return activations.get(activations.size()-1); }
+	public ArrayList<Double> getCurrentActivations() { return activations.get(activations.size()-1); }
 	public ArrayList<Double> getZ(int layer) { return zs.get(layer); }
 	public int getDegree() { return edgeIndices.size(); }
 	public double getNormalization() { return normalization; }
@@ -105,13 +105,13 @@ public class Vertex {
 	public ArrayList<Double> getNormalizedNeighborFeatures() {
 		// Initialize an the size of the features in the current layer
 		// Set to zero
-		ArrayList<Double> result = new ArrayList<Double>(getCurrentFeatures().size());
-		for (int i = 0; i < getCurrentFeatures().size(); i++) result.add(0.0);
+		ArrayList<Double> result = new ArrayList<Double>(getCurrentActivations().size());
+		for (int i = 0; i < getCurrentActivations().size(); i++) result.add(0.0);
 		
 		// Sum the vectors in result weighted by the normalization
 		// on the corresponding edge
 		for (int i = 0; i < edgeIndices.size(); i++) {
-			ArrayList<Double> temp = VectorFunctions.multiplyByScalar(edgeWeights.get(i), graph.get(edgeIndices.get(i)).getCurrentFeatures()); 
+			ArrayList<Double> temp = VectorFunctions.multiplyByScalar(edgeWeights.get(i), graph.get(edgeIndices.get(i)).getCurrentActivations()); 
 			result = VectorFunctions.sumVectors(result, temp);
 		}
 
@@ -134,7 +134,7 @@ public class Vertex {
 	}
 
 	public void printActivations(int layer) {
-		for (double d: getFeatures(layer)) System.out.printf(Double.toString(d) + " | ");
+		for (double d: getActivations(layer)) System.out.printf(Double.toString(d) + " | ");
 		System.out.println();
 	}
 }

@@ -8,6 +8,13 @@ import java.util.ArrayList;
 import data.Vertex;
 
 public class Preprocess {
+	/**
+	* Read in two files, one corresponding to the features and the other
+	* the edges of the graph
+	* @param String featureFile		The string of the file containing the feats
+	* @param String edgeFile		The string of the file containing the edges
+	* @return ArrayList<Vertex> 	The ArrayList representing the graph
+	*/
 	public ArrayList<Vertex> run(String featureFile, String edgeFile) {
 		ArrayList<Vertex> g = new ArrayList<Vertex>();
 
@@ -29,12 +36,15 @@ public class Preprocess {
 			System.err.println("FILE NOT FOUND");
 		}
 
-		for (Vertex v: g) v.setNormalization();
-		for (Vertex v: g) v.findEdgeNormalization();
+		for (Vertex v: g) v.setNormalization(); // set normalization for each vertex
+		for (Vertex v: g) v.findEdgeNormalization();	// set normalization for each edge
 
 		return g;
 	}
 
+	/**
+	* Process the input features of each Vertex and store them into memory
+	*/
 	private void readFeatures(BufferedReader fbr, ArrayList<Vertex> g) {
 		String line;
 		try {
@@ -58,6 +68,9 @@ public class Preprocess {
 		}
 	}
 
+	/**
+	* Process the input edges of each Vertex and store them into memory
+	*/
 	private void addEdges(BufferedReader br, ArrayList<Vertex> g) {
 		String line;
 		Vertex v;

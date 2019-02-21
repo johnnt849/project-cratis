@@ -1,5 +1,6 @@
 package engine;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 
 import data.Vertex;
@@ -21,11 +22,27 @@ public class GCN {
 		weights.add(new Weights(4, 2));
 	}
 
+	/**
+	* Given the processed graph, find a train mask,
+	* run forward propagation and calculate error,
+	* then run back propagation
+	*/
 	public void run(ArrayList<Vertex> graph) {
 		Integer[] trainMask = getTrainMask(graph);
+		Integer[] valMask = getValMask(graph.size(), trainMask);
 
 		// Forward pass
-		forwardProp(graph);
+		int numIters = 1;
+		for (int i = 0; i < numIters; i++) {
+			forwardProp(graph);
+			
+			if (i % 50 == 0) {
+				double error = calcTotalError(graph, valMask);
+				System.out.println("Total error for iteration " + Integer.toString(i) + ": " + Double.toString(error));
+			}
+
+			backProp(graph, trainMask);
+		}
 	}
 
 	/**
@@ -39,11 +56,32 @@ public class GCN {
 			else class1Indices.add(ind);
 		}
 
-		int class0Ind = class0Indices.get((int)(Math.random() * (class0Indices.size() * 2) % class0Indices.size()));
-		int class1Ind = class1Indices.get((int)(Math.random() * (class1Indices.size() * 2) % class1Indices.size()));
+		int class0Ind = class0Indices.get(((int)(Math.random() * (class0Indices.size() * 2))) % class0Indices.size());
+		int class1Ind = class1Indices.get(((int)(Math.random() * (class1Indices.size() * 2))) % class1Indices.size());
 
 		Integer[] indices = new Integer[]{class0Ind, class1Ind};
+		for (int ind: indices) {
+			System.out.print(Integer.toString(ind) + " ");
+			System.out.println(graph.get(ind).getClassification());
+		}
+	
 		return indices;
+	}
+
+	/**
+	* Use the training mask to get the validation mask (training maks's complement)
+	* @param Integer[] trainMask		The list of indices of the training points
+	* @param int dataSize				The total number of vertices
+	* @return Integer[]					The list of indices of validation points
+	*/
+	public Integer[] getValMask(int dataSize, Integer[] trainMask) {
+		ArrayList<Integer> valMask = new ArrayList<Integer>(dataSize-2);
+		for (int ind = 0; ind < dataSize; ind++) {
+			if (ind != trainMask[0] && ind != trainMask[1]) 
+				valMask.add(ind);
+		}
+
+		return valMask.toArray(new Integer[]{});
 	}
 
 	/**
@@ -65,6 +103,7 @@ public class GCN {
 	* Run the forward propagation for one layer of the neural network
 	*
 	* @param ArrayList<Vertex> graph
+	* @param int layer
 	*/
 	private void propagateForwardOneLayer(ArrayList<Vertex> graph, int layer) {
 		ArrayList< ArrayList<Double> > aggFeats = aggregateFeatures(graph);
@@ -97,9 +136,27 @@ public class GCN {
 
 		System.out.println("\nSOFTMAX PREDICTIONS");
 		for (Vertex v: graph) {
-			VectorFunctions.printVector(VectorFunctions.softmax(v.getCurrentFeatures()));
+			VectorFunctions.printVector(VectorFunctions.softmax(v.getCurrentActivations()));
 			System.out.println();
 		}
+	}
+
+	private void backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
+		
+	}
+
+	private double calcError(ArrayList<Double> output, int classification) {
+		return VectorFunctions.cross_entropy(VectorFunctions.softmax(output), classification);
+	}
+
+	private double calcTotalError(ArrayList<Vertex> graph, Integer[] mask) {
+		double error = 0;
+		for (Integer ind: mask) {
+			Vertex v = graph.get(ind);
+			error += calcError(v.getCurrentActivations(), v.getClassification());
+		}
+
+		return error / mask.length;
 	}
 
 	/**
