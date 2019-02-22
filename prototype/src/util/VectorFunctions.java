@@ -109,8 +109,8 @@ public class VectorFunctions {
 	* Deriv of cross ent w/ softmax: p_i - y_i 
 	* @param trainSize		The number of training examples
 	*/
-	public static ArrayList<Double> deltaCrossEntropy(ArrayList<Double> preds, int classification, int trainSize) {
-		ArrayList<Double> result = new ArrayList<Double>(preds);
+	public static ArrayList<Double> deltaCrossEntropy(ArrayList<Double> activations, int classification, int trainSize) {
+		ArrayList<Double> result = softmax(activations);
 		result.set(classification, result.get(classification) - 1);
 
 		result.replaceAll(d -> (d / trainSize));

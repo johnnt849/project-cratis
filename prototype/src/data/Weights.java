@@ -28,6 +28,7 @@ public class Weights {
 	public ArrayList<Double> get(int ind) { return wm.get(ind); }
 	public int getNumRows() { return rows; }
 	public int getNumCols() { return cols; }
+	public String shape() { return "(" + Integer.toString(rows) + "," + Integer.toString(cols) + ")"; }
 
 	public String toString() {
 		String result = "";

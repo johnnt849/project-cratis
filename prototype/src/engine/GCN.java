@@ -142,13 +142,32 @@ public class GCN {
 	}
 
 	private void backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
-		
+		//find output delta
+		Delta outputDelta = new Delta(3);
+		for (int ind: trainMask) {
+			Vertex v = graph.get(ind);
+			outputDelta.addDelta(VectorFunctions.elementwiseMultVectors(VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainMask.size()), VectorFunctions.activationPrime(v.getCurrentActivations())));
+		}
+
+		// POTENTIAL for parallelization in these two sections
+		// find previous deltas
+		// use activations to calc weight changes
 	}
 
+	/**
+	* Calculate the cross entropy error for a given Vertex output
+	* @param ArrayList<Double> output		The final activations for a given Vertex
+	* @param int classification				The classification of the given Vertex
+	*/
 	private double calcError(ArrayList<Double> output, int classification) {
 		return VectorFunctions.cross_entropy(VectorFunctions.softmax(output), classification);
 	}
 
+	/**
+	* Calculate the average error for all vertices in a mask
+	* @param ArrayList<Vertex> graph		The list of all Vertex
+	* @param Integer[] mask					The indices of vertices to use
+	*/
 	private double calcTotalError(ArrayList<Vertex> graph, Integer[] mask) {
 		double error = 0;
 		for (Integer ind: mask) {
