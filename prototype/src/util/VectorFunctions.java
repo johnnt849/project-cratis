@@ -123,6 +123,7 @@ public class VectorFunctions {
 		for (double d: vector) {
 			System.out.print(Double.toString(d) + " ");
 		}
+		System.out.println();
 	}
 }
 

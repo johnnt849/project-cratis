@@ -17,6 +17,7 @@ public class Vertex {
 
 	ArrayList< ArrayList<Double> > zs;	// output of weights * features BEFORE activation
 	ArrayList< ArrayList<Double> > activations;
+	ArrayList< ArrayList<Double> > deltas;
 
 	ArrayList<Integer> edgeIndices;	// the outgoing vertexId and index into the graph
 	ArrayList<Double> edgeWeights;	// normalization along the edge
@@ -31,6 +32,7 @@ public class Vertex {
 
 		zs = new ArrayList< ArrayList<Double> >();
 		activations = new ArrayList< ArrayList<Double> >();
+		deltas = new ArrayList< ArrayList<Double> >();
 		activations.add(feats);
 
 		edgeIndices = new ArrayList<Integer>();
@@ -74,14 +76,24 @@ public class Vertex {
 	public void addActivation(ArrayList<Double> act) {
 		activations.add(act);
 	}
+	
+	/**
+	* Add a new set of deltas
+	*/
+	public void addDelta(ArrayList<Double> delta) {
+		deltas.add(delta);
+	}
 
 	// getters
 	public int getVertexId() { return vertexId; }
 	public int getClassification() { return classification; }
-	public ArrayList<Double> getActivations(int layer) { return activations.get(layer); }
 	public ArrayList<Double> getInputFeatures() { return features; }
+	public ArrayList<Double> getActivations(int layer) { return activations.get(layer); }
 	public ArrayList<Double> getCurrentActivations() { return activations.get(activations.size()-1); }
 	public ArrayList<Double> getZ(int layer) { return zs.get(layer); }
+	public ArrayList<Double> getCurrentZ() { return zs.get(zs.size()-1); }
+	public ArrayList<Double> getDelta(int layer) { return deltas.get(layer); }
+	public ArrayList<Double> getCurrentDelta() { return deltas.get(deltas.size()-1); }
 	public int getDegree() { return edgeIndices.size(); }
 	public double getNormalization() { return normalization; }
 	public double getEdgeWeight(int vId) { return edgeWeights.get(edgeIndices.indexOf(vId)); }
@@ -136,6 +148,19 @@ public class Vertex {
 	public void printActivations(int layer) {
 		for (double d: getActivations(layer)) System.out.printf(Double.toString(d) + " | ");
 		System.out.println();
+	}
+
+	public int getNumberOf(char type) {
+		switch (type) {
+			case 'a':
+				return activations.size();
+			case 'z':
+				return zs.size();
+			case 'd':
+				return deltas.size();
+			default:
+				return 0;
+		}
 	}
 }
 

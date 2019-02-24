@@ -131,27 +131,61 @@ public class GCN {
 	private void forwardProp(ArrayList<Vertex> graph) {
 		for (int i = 0; i < weights.size(); i++) {
 			propagateForwardOneLayer(graph, i);
-			printActivations(graph, i+1);
+			//printActivations(graph, i+1);
 		}
 
-		System.out.println("\nSOFTMAX PREDICTIONS");
-		for (Vertex v: graph) {
-			VectorFunctions.printVector(VectorFunctions.softmax(v.getCurrentActivations()));
-			System.out.println();
-		}
+//		System.out.println("\nSOFTMAX PREDICTIONS");
+//		for (Vertex v: graph) {
+//			VectorFunctions.printVector(VectorFunctions.softmax(v.getCurrentActivations()));
+//			System.out.println();
+//		}
 	}
 
-	private void backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
+	/**
+	* Use the MapReduce model to compute the final gradient changes for a given layer
+	* dW_l = activations_l-1^T * delta_l
+	* 
+	* @param ArrayList<Vertex> graph
+	*/
+	public ArrayList< ArrayList<Double> > getGradients(ArrayList<Vertex> graph) {
+		ArrayList< ArrayList<Double> > gradients = new ArrayList< ArrayList<Double> >();
+		
+		return gradients;
+	}
+
+	private ArrayList< ArrayList<Double> > backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
 		//find output delta
-		Delta outputDelta = new Delta(3);
 		for (int ind: trainMask) {
 			Vertex v = graph.get(ind);
-			outputDelta.addDelta(VectorFunctions.elementwiseMultVectors(VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainMask.size()), VectorFunctions.activationPrime(v.getCurrentActivations())));
+			ArrayList<Double> lossPrime = VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainMask.length);
+			ArrayList<Double> activationPrime = VectorFunctions.activationPrime(v.getCurrentZ());
+			ArrayList<Double> outputDelta = VectorFunctions.elementwiseMultVectors(lossPrime, activationPrime);
+			v.addDelta(outputDelta);
 		}
+
+		ArrayList< ArrayList<Double> > weightChanges = getGradients(graph);
 
 		// POTENTIAL for parallelization in these two sections
 		// find previous deltas
-		// use activations to calc weight changes
+		for (int layer = weights.size()-1; layer > 0; layer--) {
+			Weights w = weights.get(layer);
+			for (int ind: trainMask) {
+				Vertex v = graph.get(ind);
+				ArrayList<Double> activationPrime = VectorFunctions.activationPrime(v.getZ(layer-1));
+
+				// use activations to calc weight changes
+				// MapReduce section
+				ArrayList<Double> deltaDotWT = new ArrayList<Double>(w.getNumRows());
+				for (int i = 0; i < w.getNumCols(); i++) {
+					deltaDotWT.add(VectorFunctions.multiplyAndSumVectors(v.getCurrentDelta(), w.getT(i)));
+				}
+
+				ArrayList<Double> delta = VectorFunctions.elementwiseMultVectors(deltaDotWT, activationPrime);
+				v.addDelta(delta);
+			}
+		}
+
+		return weightChanges;
 	}
 
 	/**
