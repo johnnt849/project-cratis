@@ -17,9 +17,13 @@ public class GCN {
 	public GCN(ArrayList<Vertex> g) {
 		graph = g;
 		weights = new ArrayList<Weights>(3);
-		weights.add(new Weights(2, 4));
-		weights.add(new Weights(4, 4));
-		weights.add(new Weights(4, 2));
+		weights.add(new Weights("../res/weights0"));
+		weights.add(new Weights("../res/weights1"));
+		weights.add(new Weights("../res/weights2"));
+
+		Weights w = weights.get(0);
+		System.out.println(w.toString());
+		System.out.println(w.toStringTranspose());
 	}
 
 	/**
@@ -27,21 +31,20 @@ public class GCN {
 	* run forward propagation and calculate error,
 	* then run back propagation
 	*/
-	public void run(ArrayList<Vertex> graph) {
+	public void run(ArrayList<Vertex> graph, int numIters) {
 		Integer[] trainMask = getTrainMask(graph);
 		Integer[] valMask = getValMask(graph.size(), trainMask);
 
 		// Forward pass
-		int numIters = 1;
 		for (int i = 0; i < numIters; i++) {
 			forwardProp(graph);
-			
-			if (i % 50 == 0) {
-				double error = calcTotalError(graph, valMask);
-				System.out.println("Total error for iteration " + Integer.toString(i) + ": " + Double.toString(error));
-			}
-
-			backProp(graph, trainMask);
+//			
+//			if (i % 50 == 0) {
+//				double error = calcTotalError(graph, valMask);
+//				System.out.println("Total error for iteration " + Integer.toString(i) + ": " + Double.toString(error));
+//			}
+//
+//			backProp(graph, trainMask);
 		}
 	}
 
@@ -131,7 +134,7 @@ public class GCN {
 	private void forwardProp(ArrayList<Vertex> graph) {
 		for (int i = 0; i < weights.size(); i++) {
 			propagateForwardOneLayer(graph, i);
-			//printActivations(graph, i+1);
+			printActivations(graph, i+1);
 		}
 
 //		System.out.println("\nSOFTMAX PREDICTIONS");
@@ -149,6 +152,8 @@ public class GCN {
 	*/
 	public ArrayList< ArrayList<Double> > getGradients(ArrayList<Vertex> graph) {
 		ArrayList< ArrayList<Double> > gradients = new ArrayList< ArrayList<Double> >();
+
+	
 		
 		return gradients;
 	}

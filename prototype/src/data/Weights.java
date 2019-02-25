@@ -1,5 +1,8 @@
 package data;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
 
@@ -34,6 +37,44 @@ public class Weights {
 				r.add(wm.get(j).get(i));
 			}
 			wmT.add(r);
+		}
+	}
+
+	/**
+	* Read a file representing the weight matrix 
+	* (Used mostly for comparison)
+	*/
+	public Weights(String weightFile) {
+		try {
+			FileReader fr = new FileReader(weightFile);
+			BufferedReader br = new BufferedReader(fr);
+
+			wmT = new ArrayList< ArrayList<Double> >();
+			String line;
+			while ((line = br.readLine()) != null) {
+				ArrayList<Double> v = new ArrayList<Double>();
+				String[] parts = line.split(" ");
+				for (String s: parts) {
+					v.add(Double.parseDouble(s));
+				}
+				wmT.add(v);
+			}
+	
+			br.close();
+		} catch(IOException e) {
+			System.err.println("File not found");
+		}
+
+		rows = wmT.get(0).size();
+		cols = wmT.size(); 
+
+		wm = new ArrayList< ArrayList<Double> >(rows);
+		for (int i = 0; i < rows; i++) {
+			ArrayList<Double> c = new ArrayList<Double>(cols);
+			for (int j = 0; j < cols; j++) {
+				c.add(wmT.get(j).get(i));
+			}
+			wm.add(c);
 		}
 	}
 
