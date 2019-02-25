@@ -5,7 +5,9 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import util.Vector;
 import util.VectorFunctions;
+import util.VectorImpl;
 
 public class Vertex {
 	int vertexId;
@@ -13,30 +15,30 @@ public class Vertex {
 	double normalization;
 
 	int classification;
-	ArrayList<Double> features;		// Initial vertex features
+	Vector features;		// Initial vertex features
 
-	ArrayList< ArrayList<Double> > zs;	// output of weights * features BEFORE activation
-	ArrayList< ArrayList<Double> > activations;
-	ArrayList< ArrayList<Double> > deltas;
+	ArrayList<Vector> zs;	// output of weights * features BEFORE activation
+	ArrayList<Vector> activations;
+	ArrayList<Vector> deltas;
 
 	ArrayList<Integer> edgeIndices;	// the outgoing vertexId and index into the graph
-	ArrayList<Double> edgeWeights;	// normalization along the edge
+	Vector edgeWeights;	// normalization along the edge
 	ArrayList<Vertex> graph;
 
-	public Vertex(int vId, ArrayList<Vertex> _g, int _class, ArrayList<Double> feats) {
+	public Vertex(int vId, ArrayList<Vertex> _g, int _class, Vector feats) {
 		vertexId = vId;
 		graph = _g;
 
 		classification = _class;
 		features = feats;
 
-		zs = new ArrayList< ArrayList<Double> >();
-		activations = new ArrayList< ArrayList<Double> >();
-		deltas = new ArrayList< ArrayList<Double> >();
+		zs = new ArrayList<Vector>();
+		activations = new ArrayList<Vector>();
+		deltas = new ArrayList<Vector>();
 		activations.add(feats);
 
 		edgeIndices = new ArrayList<Integer>();
-		edgeWeights = new ArrayList<Double>();
+		edgeWeights = new VectorImpl();
 	}
 
 	/**
@@ -66,34 +68,34 @@ public class Vertex {
 	/**
 	* Add a current layer to the zs list
 	*/
-	public void addZ(ArrayList<Double> z) {
+	public void addZ(Vector z) {
 		zs.add(z);
 	}
 
 	/**
 	* Add a new set of activations for this vertex
 	*/
-	public void addActivation(ArrayList<Double> act) {
+	public void addActivation(Vector act) {
 		activations.add(act);
 	}
 	
 	/**
 	* Add a new set of deltas
 	*/
-	public void addDelta(ArrayList<Double> delta) {
+	public void addDelta(Vector delta) {
 		deltas.add(delta);
 	}
 
 	// getters
 	public int getVertexId() { return vertexId; }
 	public int getClassification() { return classification; }
-	public ArrayList<Double> getInputFeatures() { return features; }
-	public ArrayList<Double> getActivations(int layer) { return activations.get(layer); }
-	public ArrayList<Double> getCurrentActivations() { return activations.get(activations.size()-1); }
-	public ArrayList<Double> getZ(int layer) { return zs.get(layer); }
-	public ArrayList<Double> getCurrentZ() { return zs.get(zs.size()-1); }
-	public ArrayList<Double> getDelta(int layer) { return deltas.get(layer); }
-	public ArrayList<Double> getCurrentDelta() { return deltas.get(deltas.size()-1); }
+	public Vector getInputFeatures() { return features; }
+	public Vector getActivations(int layer) { return activations.get(layer); }
+	public Vector getCurrentActivations() { return activations.get(activations.size()-1); }
+	public Vector getZ(int layer) { return zs.get(layer); }
+	public Vector getCurrentZ() { return zs.get(zs.size()-1); }
+	public Vector getDelta(int layer) { return deltas.get(layer); }
+	public Vector getCurrentDelta() { return deltas.get(deltas.size()-1); }
 	public int getDegree() { return edgeIndices.size(); }
 	public double getNormalization() { return normalization; }
 	public double getEdgeWeight(int vId) { return edgeWeights.get(edgeIndices.indexOf(vId)); }
@@ -112,18 +114,18 @@ public class Vertex {
 
 	/**
 	* Aggregate the normalized features in the most recent layer for the neighbors of this vertex
-	* @return ArrayList<Double>
+	* @return Vector
 	*/
-	public ArrayList<Double> getNormalizedNeighborFeatures() {
+	public Vector getNormalizedNeighborFeatures() {
 		// Initialize an the size of the features in the current layer
 		// Set to zero
-		ArrayList<Double> result = new ArrayList<Double>(getCurrentActivations().size());
+		Vector result = new VectorImpl(getCurrentActivations().size());
 		for (int i = 0; i < getCurrentActivations().size(); i++) result.add(0.0);
 		
 		// Sum the vectors in result weighted by the normalization
 		// on the corresponding edge
 		for (int i = 0; i < edgeIndices.size(); i++) {
-			ArrayList<Double> temp = VectorFunctions.multiplyByScalar(edgeWeights.get(i), graph.get(edgeIndices.get(i)).getCurrentActivations()); 
+			Vector temp = VectorFunctions.multiplyByScalar(edgeWeights.get(i), graph.get(edgeIndices.get(i)).getCurrentActivations()); 
 			result = VectorFunctions.sumVectors(result, temp);
 		}
 

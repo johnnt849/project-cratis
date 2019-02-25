@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import data.Vertex;
+import util.Vector;
+import util.VectorImpl;
 
 public class Preprocess {
 	/**
@@ -54,7 +56,7 @@ public class Preprocess {
 				int src = Integer.parseInt(parts[0]);
 				int classification = Integer.parseInt(parts[2]);
 
-				ArrayList<Double> feats = new ArrayList<Double>();
+				Vector feats = new VectorImpl();
 				for (int i = 0; i < featStrs.length; i++) {
 					feats.add(Double.parseDouble(featStrs[i]));
 				}

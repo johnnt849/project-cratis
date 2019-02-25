@@ -4,36 +4,34 @@ import java.lang.Math;
 import java.util.ArrayList;
 
 import util.DimensionMismatchException;
-import util.Vector;
-import util.VectorImpl;
 
-public class VectorFunctions {
+public class ArrayList<Double>Functions {
 	// ====== VECTOR OPERATIONS ======
-	public static Vector multiplyByScalar(double scalar, Vector vector) {
-		Vector result = new VectorImpl(vector.size());
+	public static ArrayList<Double> multiplyByScalar(double scalar, ArrayList<Double> vector) {
+		ArrayList<Double> result = new ArrayList<Double>(vector.size());
 		for (double d: vector) result.add(scalar * d);
 
 		return result;
 	}
 
-	public static Vector tanhVectorActivation(Vector vector) {
-		Vector result = new VectorImpl(vector.size());
+	public static ArrayList<Double> tanhArrayList<Double>Activation(ArrayList<Double> vector) {
+		ArrayList<Double> result = new ArrayList<Double>(vector.size());
 		for (double d: vector) result.add(Math.tanh(d));
 
 		return result;
 	}
 
-	public static Vector elementwiseMultVectors(Vector vec1, Vector vec2) {
-		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
+	public static ArrayList<Double> elementwiseMultArrayList<Double>s(ArrayList<Double> vec1, ArrayList<Double> vec2) {
+		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("ArrayList<Double>s are not the same size");
 
-		Vector result = new VectorImpl(vec1.size());
+		ArrayList<Double> result = new ArrayList<Double>(vec1.size());
 		for (int i = 0; i < vec1.size(); i++) result.add(vec1.get(i) * vec2.get(i));
 
 		return result;
 	}
 
-	public static double multiplyAndSumVectors(Vector vec1, Vector vec2) {
-		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
+	public static double multiplyAndSumArrayList<Double>s(ArrayList<Double> vec1, ArrayList<Double> vec2) {
+		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("ArrayList<Double>s are not the same size");
 
 		double result = 0;
 		for (int i = 0; i < vec1.size(); i++) result += vec1.get(i) * vec2.get(i);
@@ -41,9 +39,9 @@ public class VectorFunctions {
 		return result;
 	}
 
-	public static Vector sumVectors(Vector vec1, Vector vec2) {
-		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
-		Vector result = new VectorImpl(vec1.size());
+	public static ArrayList<Double> sumArrayList<Double>s(ArrayList<Double> vec1, ArrayList<Double> vec2) {
+		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("ArrayList<Double>s are not the same size");
+		ArrayList<Double> result = new ArrayList<Double>(vec1.size());
 		for (int i = 0; i < vec1.size(); i++) {
 			result.add(vec1.get(i) + vec2.get(i));
 		}
@@ -51,7 +49,7 @@ public class VectorFunctions {
 		return result;
 	}
 
-	public static double sum(Vector vector) {
+	public static double sum(ArrayList<Double> vector) {
 		double result = 0;
 		for (double d: vector) result += d;
 
@@ -63,11 +61,11 @@ public class VectorFunctions {
 	/**
 	* Converts an array of output activations to precidctions of which
 	* class the Vertex is in (all rows sum to 1)
-	* @param Vector vector		Activation vector corresponding to vertex
-	* @return Vector 
+	* @param ArrayList<Double> vector		Activation vector corresponding to vertex
+	* @return ArrayList<Double> 
 	*/
-	public static Vector softmax(Vector vector) {
-		Vector result = new VectorImpl(vector.size());
+	public static ArrayList<Double> softmax(ArrayList<Double> vector) {
+		ArrayList<Double> result = new ArrayList<Double>(vector.size());
 
 		for (double d: vector) result.add(Math.exp(d));
 		double total = sum(result);
@@ -79,10 +77,10 @@ public class VectorFunctions {
 	/**
 	* Predicts the output loss for one Vertex given its softmax predictions and 
 	* its classification
-	* @param Vector		Predictions produced by softmax
+	* @param ArrayList<Double>		Predictions produced by softmax
 	* @return double				Loss for specific Vertex
 	*/
-	public static double cross_entropy(Vector preds, int classification) {
+	public static double cross_entropy(ArrayList<Double> preds, int classification) {
 		// This will only work for BINARY classification
 		return (-Math.log(preds.get(classification)));
 	}
@@ -98,8 +96,8 @@ public class VectorFunctions {
 	/**
 	* Apply the derivative of the activation to all elements in a Vertex activation
 	*/
-	public static Vector activationPrime(Vector activations) {
-		Vector result = new VectorImpl(activations.size());
+	public static ArrayList<Double> activationPrime(ArrayList<Double> activations) {
+		ArrayList<Double> result = new ArrayList<Double>(activations.size());
 		for (double d: activations) result.add(derivTanh(d));
 
 		return result;
@@ -111,8 +109,8 @@ public class VectorFunctions {
 	* Deriv of cross ent w/ softmax: p_i - y_i 
 	* @param trainSize		The number of training examples
 	*/
-	public static Vector deltaCrossEntropy(Vector activations, int classification, int trainSize) {
-		Vector result = softmax(activations);
+	public static ArrayList<Double> deltaCrossEntropy(ArrayList<Double> activations, int classification, int trainSize) {
+		ArrayList<Double> result = softmax(activations);
 		result.set(classification, result.get(classification) - 1);
 
 		result.replaceAll(d -> (d / trainSize));
@@ -121,7 +119,7 @@ public class VectorFunctions {
 
 
 	// ====== UTILITY FUNCTION ======
-	public static void printVector(Vector vector) {
+	public static void printArrayList<Double>(ArrayList<Double> vector) {
 		for (double d: vector) {
 			System.out.print(Double.toString(d) + " ");
 		}

@@ -6,7 +6,12 @@ import java.util.ArrayList;
 import data.Vertex;
 import data.Weights;
 import engine.Preprocess;
+import util.Matrix;
+import util.MatrixImpl;
+import util.Vector;
 import util.VectorFunctions;
+import util.VectorImpl;
+
 
 
 public class GCN {
@@ -93,8 +98,8 @@ public class GCN {
 	* @param ArrayList<Vertex> g
 	* @return ArrayList<Vertex>
 	*/
-	private ArrayList< ArrayList<Double> > aggregateFeatures(ArrayList<Vertex> graph) {
-		ArrayList< ArrayList<Double> > aggFeats = new ArrayList< ArrayList<Double> >(graph.size());
+	private Matrix aggregateFeatures(ArrayList<Vertex> graph) {
+		Matrix aggFeats = new MatrixImpl(graph.size());
 		for (Vertex v: graph) {
 			aggFeats.add(v.getNormalizedNeighborFeatures());
 		}
@@ -109,12 +114,12 @@ public class GCN {
 	* @param int layer
 	*/
 	private void propagateForwardOneLayer(ArrayList<Vertex> graph, int layer) {
-		ArrayList< ArrayList<Double> > aggFeats = aggregateFeatures(graph);
+		Matrix aggFeats = aggregateFeatures(graph);
 		Weights w = weights.get(layer);
 
 		// Z = H * W
 		for (int i = 0; i < graph.size(); i++) {
-			ArrayList<Double> z = new ArrayList<Double>(w.getNumRows());
+			Vector z = new VectorImpl(w.getNumRows());
 			for (int j = 0; j < w.getNumRows(); j++) {
 				z.add(VectorFunctions.multiplyAndSumVectors(aggFeats.get(i), w.get(j)));
 			}
@@ -150,25 +155,25 @@ public class GCN {
 	* 
 	* @param ArrayList<Vertex> graph
 	*/
-	public ArrayList< ArrayList<Double> > getGradients(ArrayList<Vertex> graph) {
-		ArrayList< ArrayList<Double> > gradients = new ArrayList< ArrayList<Double> >();
+	public Matrix getGradients(ArrayList<Vertex> graph) {
+		Matrix gradients = new MatrixImpl();
 
 	
 		
 		return gradients;
 	}
 
-	private ArrayList< ArrayList<Double> > backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
+	private Matrix backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
 		//find output delta
 		for (int ind: trainMask) {
 			Vertex v = graph.get(ind);
-			ArrayList<Double> lossPrime = VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainMask.length);
-			ArrayList<Double> activationPrime = VectorFunctions.activationPrime(v.getCurrentZ());
-			ArrayList<Double> outputDelta = VectorFunctions.elementwiseMultVectors(lossPrime, activationPrime);
+			Vector lossPrime = VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainMask.length);
+			Vector activationPrime = VectorFunctions.activationPrime(v.getCurrentZ());
+			Vector outputDelta = VectorFunctions.elementwiseMultVectors(lossPrime, activationPrime);
 			v.addDelta(outputDelta);
 		}
 
-		ArrayList< ArrayList<Double> > weightChanges = getGradients(graph);
+		Matrix weightChanges = getGradients(graph);
 
 		// POTENTIAL for parallelization in these two sections
 		// find previous deltas
@@ -176,16 +181,16 @@ public class GCN {
 			Weights w = weights.get(layer);
 			for (int ind: trainMask) {
 				Vertex v = graph.get(ind);
-				ArrayList<Double> activationPrime = VectorFunctions.activationPrime(v.getZ(layer-1));
+				Vector activationPrime = VectorFunctions.activationPrime(v.getZ(layer-1));
 
 				// use activations to calc weight changes
 				// MapReduce section
-				ArrayList<Double> deltaDotWT = new ArrayList<Double>(w.getNumRows());
+				Vector deltaDotWT = new VectorImpl(w.getNumRows());
 				for (int i = 0; i < w.getNumCols(); i++) {
 					deltaDotWT.add(VectorFunctions.multiplyAndSumVectors(v.getCurrentDelta(), w.getT(i)));
 				}
 
-				ArrayList<Double> delta = VectorFunctions.elementwiseMultVectors(deltaDotWT, activationPrime);
+				Vector delta = VectorFunctions.elementwiseMultVectors(deltaDotWT, activationPrime);
 				v.addDelta(delta);
 			}
 		}
@@ -195,10 +200,10 @@ public class GCN {
 
 	/**
 	* Calculate the cross entropy error for a given Vertex output
-	* @param ArrayList<Double> output		The final activations for a given Vertex
+	* @param Vector output		The final activations for a given Vertex
 	* @param int classification				The classification of the given Vertex
 	*/
-	private double calcError(ArrayList<Double> output, int classification) {
+	private double calcError(Vector output, int classification) {
 		return VectorFunctions.cross_entropy(VectorFunctions.softmax(output), classification);
 	}
 
