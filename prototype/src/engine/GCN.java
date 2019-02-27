@@ -36,7 +36,7 @@ public class GCN {
 		nMappers = nMaps;
 		chunkSize = chunks;
 
-		eta = .001
+		eta = .001;
 	}
 
 	/**
@@ -61,10 +61,18 @@ public class GCN {
 			for (int ind: trainMask) trainPoints.add(graph.get(ind));
 			List<Matrix> updates = backProp(trainPoints);
 
+			//PRINT UPDATES
+			int layer = weights.size();
 			for (Matrix m: updates) {
-				for (int i = 0; i < m.get(i); i++) {
-					
+				System.out.println("UPDATES TO LAYER " + Integer.toString(layer));
+				for (int x = 0; x < m.size(); x++) {
+					for (int y = 0; y < m.get(x).size(); y++) {
+						System.out.print(Double.toString(m.get(x).get(y)) + " ");
+					}
+					System.out.println();
 				}
+				System.out.println();
+				layer--;
 			}
 		}
 	}
@@ -114,10 +122,11 @@ public class GCN {
 	* @param ArrayList<Vertex> g
 	* @return ArrayList<Vertex>
 	*/
-	private Matrix aggregateFeatures(ArrayList<Vertex> graph) {
+	private Matrix aggregateFeatures(ArrayList<Vertex> graph, int layer) {
+		boolean initial = layer == 0 ? true : false;
 		Matrix aggFeats = new MatrixImpl(graph.size());
 		for (Vertex v: graph) {
-			aggFeats.add(v.getNormalizedNeighborFeatures());
+			aggFeats.add(v.getNormalizedNeighborFeatures(initial));
 		}
 
 		return aggFeats;
@@ -130,7 +139,7 @@ public class GCN {
 	* @param int layer
 	*/
 	private void propagateForwardOneLayer(ArrayList<Vertex> graph, int layer) {
-		Matrix aggFeats = aggregateFeatures(graph);
+		Matrix aggFeats = aggregateFeatures(graph, layer);
 		Weights w = weights.get(layer);
 
 		// Z = H * W

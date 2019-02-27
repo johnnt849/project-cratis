@@ -35,7 +35,6 @@ public class Vertex {
 		zs = new ArrayList<Vector>();
 		activations = new ArrayList<Vector>();
 		deltas = new ArrayList<Vector>();
-		activations.add(feats);
 
 		edgeIndices = new ArrayList<Integer>();
 		edgeWeights = new VectorImpl();
@@ -113,19 +112,25 @@ public class Vertex {
 	}
 
 	/**
+	* Get the initial aggregations on the initial 
+	*/
+
+	/**
 	* Aggregate the normalized features in the most recent layer for the neighbors of this vertex
 	* @return Vector
 	*/
-	public Vector getNormalizedNeighborFeatures() {
+	public Vector getNormalizedNeighborFeatures(boolean initial) {
 		// Initialize an the size of the features in the current layer
 		// Set to zero
-		Vector result = new VectorImpl(getCurrentActivations().size());
-		for (int i = 0; i < getCurrentActivations().size(); i++) result.add(0.0);
+		int size = !initial ? getCurrentActivations().size() : features.size();
+		Vector result = new VectorImpl(size);
+		for (int i = 0; i < size; i++) result.add(0.0);
 		
 		// Sum the vectors in result weighted by the normalization
 		// on the corresponding edge
 		for (int i = 0; i < edgeIndices.size(); i++) {
-			Vector temp = VectorFunctions.multiplyByScalar(edgeWeights.get(i), graph.get(edgeIndices.get(i)).getCurrentActivations()); 
+			Vector featureVector = !initial ? graph.get(edgeIndices.get(i)).getCurrentActivations() : graph.get(edgeIndices.get(i)).getInputFeatures();
+			Vector temp = VectorFunctions.multiplyByScalar(edgeWeights.get(i), featureVector); 
 			result = VectorFunctions.sumVectors(result, temp);
 		}
 

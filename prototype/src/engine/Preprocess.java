@@ -40,6 +40,7 @@ public class Preprocess {
 
 		for (Vertex v: g) v.setNormalization(); // set normalization for each vertex
 		for (Vertex v: g) v.findEdgeNormalization();	// set normalization for each edge
+		for (Vertex v: g) v.addActivation(v.getNormalizedNeighborFeatures(true));
 
 		return g;
 	}
