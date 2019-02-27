@@ -10,4 +10,8 @@ public class MatrixImpl extends ArrayList<Vector> implements Matrix {
 	}
 
 	public MatrixImpl() {}
+
+	public void shape() {
+		System.out.println("(" + Integer.toString(super.size()) + "," + Integer.toString(super.get(0).size()) + ")");
+	}
 }

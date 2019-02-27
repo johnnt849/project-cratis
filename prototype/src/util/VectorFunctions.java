@@ -9,6 +9,9 @@ import util.VectorImpl;
 
 public class VectorFunctions {
 	// ====== VECTOR OPERATIONS ======
+	/**
+	* multply evey element in a vector by a given scalar
+	*/
 	public static Vector multiplyByScalar(double scalar, Vector vector) {
 		Vector result = new VectorImpl(vector.size());
 		for (double d: vector) result.add(scalar * d);
@@ -16,6 +19,9 @@ public class VectorFunctions {
 		return result;
 	}
 
+	/**
+	* apply the tanh activation function to every element in a vector
+	*/
 	public static Vector tanhVectorActivation(Vector vector) {
 		Vector result = new VectorImpl(vector.size());
 		for (double d: vector) result.add(Math.tanh(d));
@@ -23,6 +29,9 @@ public class VectorFunctions {
 		return result;
 	}
 
+	/**
+	* return the element-wise multipliation of two vectors
+	*/
 	public static Vector elementwiseMultVectors(Vector vec1, Vector vec2) {
 		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
 
@@ -32,6 +41,9 @@ public class VectorFunctions {
 		return result;
 	}
 
+	/**
+	* element-wise multiply two vectors and return the sum of the elements in the result
+	*/
 	public static double multiplyAndSumVectors(Vector vec1, Vector vec2) {
 		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
 
@@ -41,6 +53,9 @@ public class VectorFunctions {
 		return result;
 	}
 
+	/**
+	* return the element-wise sum of two vectors
+	*/	
 	public static Vector sumVectors(Vector vec1, Vector vec2) {
 		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
 		Vector result = new VectorImpl(vec1.size());
@@ -51,6 +66,9 @@ public class VectorFunctions {
 		return result;
 	}
 
+	/**
+	* return the sum of the elements in a vector
+	*/
 	public static double sum(Vector vector) {
 		double result = 0;
 		for (double d: vector) result += d;

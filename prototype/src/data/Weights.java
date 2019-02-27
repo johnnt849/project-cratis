@@ -17,12 +17,15 @@ public class Weights {
 	Matrix wm;
 	Matrix wmT;
 
+	boolean updated;
+
 	public Weights(int x, int y) {
 		// because we are not using matrices we need to 
 		// switch col and row sizes
 		// switched so they don't have to be dealt with later
 		rows = y;
 		cols = x;
+		updated = false;
 
 		// Transpose the initial matrix to work for forward propagation
 		wm = new MatrixImpl(rows);
@@ -81,13 +84,35 @@ public class Weights {
 			}
 			wm.add(c);
 		}
+
+		updated = false;
 	}
 
+	// getters
 	public Vector get(int ind) { return wm.get(ind); }
 	public Vector getT(int ind) { return wmT.get(ind); }
 	public int getNumRows() { return rows; }
 	public int getNumCols() { return cols; }
 	public String shape() { return "(" + Integer.toString(cols) + "," + Integer.toString(rows) + ")"; }
+
+	// setters
+	public void set(int ind, Vector v) { wm.set(ind, v); updated = true; }
+
+	public void createTranspose() {
+		if (!updated) return;		// don't create transpose if original and transpose already match
+
+		wmT = new MatrixImpl(cols);
+		for (int i = 0; i < cols; i++) {
+			Vector r = new VectorImpl(rows);
+			for (int j = 0; j < rows; j++) {
+				r.add(wm.get(j).get(i));
+			}
+			wmT.add(r);
+		}
+
+		updated = false;
+	}
+	
 
 	public String toString() {
 		String result = "";

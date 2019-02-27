@@ -2,6 +2,7 @@ package engine;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import data.Vertex;
@@ -24,7 +25,7 @@ public class GCN {
 	int nMappers;
 	int chunkSize;
 
-	double eta;
+	double eta;		// Learning rate
 
 	public GCN(ArrayList<Vertex> g, int nMaps, int chunks) {
 		graph = g;
@@ -62,7 +63,7 @@ public class GCN {
 			List<Matrix> updates = backProp(trainPoints);
 
 			//PRINT UPDATES
-			int layer = weights.size();
+			int layer = 0;
 			for (Matrix m: updates) {
 				System.out.println("UPDATES TO LAYER " + Integer.toString(layer));
 				for (int x = 0; x < m.size(); x++) {
@@ -72,8 +73,15 @@ public class GCN {
 					System.out.println();
 				}
 				System.out.println();
-				layer--;
+				layer++;
 			}
+
+			weights.forEach(w -> System.out.println(w.toString()));
+
+			graph.forEach(v -> v.resetAfterIteration());;
+
+
+			applyGradients(updates);
 		}
 	}
 
@@ -235,12 +243,20 @@ public class GCN {
 			} catch(Exception e) {}
 		}
 		
-		
 		return gradients;
 	}
 
+
+	/**
+	* Runs the backpropagation algorithm for the nerual network
+	* (Consider implementing as an interface for more generality)
+	*
+	* @param ArrayList<Vertex> trainPoints		the set of points to train on
+	*
+	* @return List<Matrix>						weight gradients to be applied
+	*/
 	private List<Matrix> backProp(List<Vertex> trainPoints) {
-		List<Matrix> weightGradients = new ArrayList<Matrix>(weights.size());
+		LinkedList<Matrix> weightGradients = new LinkedList<Matrix>();
 
 		//find output delta
 		for (Vertex v: trainPoints) {
@@ -251,7 +267,7 @@ public class GCN {
 		}
 
 		Matrix weightChangesForLayer = getGradients(trainPoints, weights.size()-1);
-		weightGradients.add(weightChangesForLayer);
+		weightGradients.addFirst(weightChangesForLayer);
 
 		// POTENTIAL for parallelization in these two sections
 		// find previous deltas
@@ -272,10 +288,28 @@ public class GCN {
 			}
 
 			weightChangesForLayer = getGradients(trainPoints, layer-1);
-			weightGradients.add(weightChangesForLayer);
+			weightGradients.addFirst(weightChangesForLayer);
 		}
 
 		return weightGradients;
+	}
+
+	/**
+	* 
+	*/
+	public void applyGradients(List<Matrix> updates) {
+		for (int i = 0; i < weights.size(); i++) {
+			Matrix weightUpdates = updates.get(i);
+			Weights w = weights.get(i);
+
+			for (int j = 0; j < weightUpdates.size(); j++) {
+				Vector scaledUpdates = VectorFunctions.multiplyByScalar(eta, weightUpdates.get(j));
+				Vector updatedRow = VectorFunctions.sumVectors(w.get(j), scaledUpdates);
+				w.set(j, updatedRow);
+			}
+
+			w.createTranspose();
+		}
 	}
 
 	/**

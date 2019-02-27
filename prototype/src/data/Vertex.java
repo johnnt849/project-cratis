@@ -4,6 +4,7 @@ import java.lang.Math;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import util.Vector;
 import util.VectorFunctions;
@@ -17,13 +18,13 @@ public class Vertex {
 	int classification;
 	Vector features;		// Initial vertex features
 
-	ArrayList<Vector> zs;	// output of weights * features BEFORE activation
-	ArrayList<Vector> activations;
-	ArrayList<Vector> deltas;
+	List<Vector> zs;	// output of weights * features BEFORE activation
+	List<Vector> activations;
+	List<Vector> deltas;
 
-	ArrayList<Integer> edgeIndices;	// the outgoing vertexId and index into the graph
+	List<Integer> edgeIndices;	// the outgoing vertexId and index into the graph
 	Vector edgeWeights;	// normalization along the edge
-	ArrayList<Vertex> graph;
+	List<Vertex> graph;
 
 	public Vertex(int vId, ArrayList<Vertex> _g, int _class, Vector feats) {
 		vertexId = vId;
@@ -112,10 +113,6 @@ public class Vertex {
 	}
 
 	/**
-	* Get the initial aggregations on the initial 
-	*/
-
-	/**
 	* Aggregate the normalized features in the most recent layer for the neighbors of this vertex
 	* @return Vector
 	*/
@@ -135,6 +132,15 @@ public class Vertex {
 		}
 
 		return result;
+	}
+
+	/**
+	* Clear all info about this iteration stored on the vertices that depends on trainable variables
+	*/
+	public void resetAfterIteration() {
+		zs.clear();
+		activations = activations.subList(0, 1);	// retain only the first element in the activations
+		deltas.clear();
 	}
 
 
