@@ -15,7 +15,7 @@ public class Main {
 
 		ArrayList<Vertex> graph = prep.run(featFile, edgeFile);
 
-		GCN cn = new GCN(graph);
+		GCN cn = new GCN(graph, 2, 1);
 
 		int numIters = 1;
 		cn.run(graph, numIters);

@@ -2,10 +2,13 @@ package engine;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.List;
 
 import data.Vertex;
 import data.Weights;
+import engine.Mapper;
 import engine.Preprocess;
+import engine.Reducer;
 import util.Matrix;
 import util.MatrixImpl;
 import util.Vector;
@@ -16,19 +19,24 @@ import util.VectorImpl;
 
 public class GCN {
 	ArrayList<Vertex> graph;
-
 	ArrayList<Weights> weights;
 
-	public GCN(ArrayList<Vertex> g) {
+	int nMappers;
+	int chunkSize;
+
+	double eta;
+
+	public GCN(ArrayList<Vertex> g, int nMaps, int chunks) {
 		graph = g;
 		weights = new ArrayList<Weights>(3);
 		weights.add(new Weights("../res/weights0"));
 		weights.add(new Weights("../res/weights1"));
 		weights.add(new Weights("../res/weights2"));
 
-		Weights w = weights.get(0);
-		System.out.println(w.toString());
-		System.out.println(w.toStringTranspose());
+		nMappers = nMaps;
+		chunkSize = chunks;
+
+		eta = .001
 	}
 
 	/**
@@ -43,13 +51,21 @@ public class GCN {
 		// Forward pass
 		for (int i = 0; i < numIters; i++) {
 			forwardProp(graph);
-//			
-//			if (i % 50 == 0) {
-//				double error = calcTotalError(graph, valMask);
-//				System.out.println("Total error for iteration " + Integer.toString(i) + ": " + Double.toString(error));
-//			}
-//
-//			backProp(graph, trainMask);
+			
+			if (i % 50 == 0) {
+				double error = calcTotalError(graph, valMask);
+				System.out.println("Total error for iteration " + Integer.toString(i) + ": " + Double.toString(error));
+			}
+
+			List<Vertex> trainPoints = new ArrayList<Vertex>(trainMask.length);
+			for (int ind: trainMask) trainPoints.add(graph.get(ind));
+			List<Matrix> updates = backProp(trainPoints);
+
+			for (Matrix m: updates) {
+				for (int i = 0; i < m.get(i); i++) {
+					
+				}
+			}
 		}
 	}
 
@@ -155,32 +171,84 @@ public class GCN {
 	* 
 	* @param ArrayList<Vertex> graph
 	*/
-	public Matrix getGradients(ArrayList<Vertex> graph) {
-		Matrix gradients = new MatrixImpl();
+	private Matrix getGradients(List<Vertex> trainPoints, int layer) {
+		// This code is messy. Needs cleanup
+		int nReducers = weights.get(layer).getNumRows();	// One reducer per row in Weight matrix
 
-	
+		// Initialize shared memory: for MapReduce communication
+		ArrayList< ArrayList<Vector> > buckets = new ArrayList< ArrayList<Vector> >(nReducers);
+		Matrix gradients = new MatrixImpl(nReducers);
+		for (int i = 0; i < nReducers; i++) {
+			buckets.add(new ArrayList<Vector>());
+			gradients.add(new VectorImpl());
+		}	// end Iniitialize shared memory
+
+		// Initialize Mappers: allocate partitions and get vectors
+		List<Mapper> mappers = new ArrayList<Mapper>(nMappers);
+		for (int i = 0; i < nMappers; i++) {
+			List<Vector> activationChunks = new ArrayList<Vector>(chunkSize);
+			List<Vector> deltaChunks = new ArrayList<Vector>(chunkSize);
+
+			int end = i*chunkSize+chunkSize;
+			end = end < trainPoints.size() ? end : trainPoints.size();
+
+			for (int ind = i*chunkSize; ind < end; ind++) {
+				Vertex v = trainPoints.get(ind);
+				deltaChunks.add(v.getCurrentDelta());
+				activationChunks.add(v.getActivations(layer));
+			}
+
+			Mapper map = new Mapper(buckets, deltaChunks, activationChunks);
+			mappers.add(map);
+			map.start();
+		}	// end Initialize Mappers
+
+		// Initialize Reducers
+		List<Reducer> reducers = new ArrayList<Reducer>(nReducers);
+		for (int i = 0; i < nReducers; i++) reducers.add(new Reducer(buckets, i, gradients));
+		// end Initialize Reducers
+
+		// Wait for mappers to finish work
+		for (Mapper m: mappers) {
+			try {
+				m.join();
+			} catch(Exception e) {}
+		}
+
+
+		for (Reducer r: reducers) {
+			r.start();
+		}
+
+		for (Reducer r: reducers) {
+			try {
+				r.join();
+			} catch(Exception e) {}
+		}
+		
 		
 		return gradients;
 	}
 
-	private Matrix backProp(ArrayList<Vertex> graph, Integer[] trainMask) {
+	private List<Matrix> backProp(List<Vertex> trainPoints) {
+		List<Matrix> weightGradients = new ArrayList<Matrix>(weights.size());
+
 		//find output delta
-		for (int ind: trainMask) {
-			Vertex v = graph.get(ind);
-			Vector lossPrime = VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainMask.length);
+		for (Vertex v: trainPoints) {
+			Vector lossPrime = VectorFunctions.deltaCrossEntropy(v.getCurrentActivations(), v.getClassification(), trainPoints.size());
 			Vector activationPrime = VectorFunctions.activationPrime(v.getCurrentZ());
 			Vector outputDelta = VectorFunctions.elementwiseMultVectors(lossPrime, activationPrime);
 			v.addDelta(outputDelta);
 		}
 
-		Matrix weightChanges = getGradients(graph);
+		Matrix weightChangesForLayer = getGradients(trainPoints, weights.size()-1);
+		weightGradients.add(weightChangesForLayer);
 
 		// POTENTIAL for parallelization in these two sections
 		// find previous deltas
 		for (int layer = weights.size()-1; layer > 0; layer--) {
 			Weights w = weights.get(layer);
-			for (int ind: trainMask) {
-				Vertex v = graph.get(ind);
+			for (Vertex v: trainPoints) {
 				Vector activationPrime = VectorFunctions.activationPrime(v.getZ(layer-1));
 
 				// use activations to calc weight changes
@@ -193,9 +261,12 @@ public class GCN {
 				Vector delta = VectorFunctions.elementwiseMultVectors(deltaDotWT, activationPrime);
 				v.addDelta(delta);
 			}
+
+			weightChangesForLayer = getGradients(trainPoints, layer-1);
+			weightGradients.add(weightChangesForLayer);
 		}
 
-		return weightChanges;
+		return weightGradients;
 	}
 
 	/**
