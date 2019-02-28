@@ -58,10 +58,21 @@ public class VectorFunctions {
 	*/	
 	public static Vector sumVectors(Vector vec1, Vector vec2) {
 		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
+
 		Vector result = new VectorImpl(vec1.size());
-		for (int i = 0; i < vec1.size(); i++) {
-			result.add(vec1.get(i) + vec2.get(i));
-		}
+		for (int i = 0; i < vec1.size(); i++) result.add(vec1.get(i) + vec2.get(i));
+
+		return result;
+	}
+
+	/**
+	* return the element-wise subtraction of two vectors
+	*/
+	public static Vector subtractVectors(Vector vec1, Vector vec2) {
+		if (vec1.size() != vec2.size()) throw new DimensionMismatchException("Vectors are not the same size");
+
+		Vector result = new VectorImpl(vec1.size());
+		for (int i = 0; i < vec1.size(); i++) result.add(vec1.get(i) - vec2.get(i));
 
 		return result;
 	}
@@ -92,6 +103,23 @@ public class VectorFunctions {
 
 		result.replaceAll(d -> d / total);
 		return result;
+	}
+
+	/**
+	* Returns the index of the maximum argument in a vector
+	*/
+	public static int argmax(Vector vector) { 
+		double max = 0;
+		int indMax = 0;
+
+		for (int i = 0; i < vector.size(); i++) {
+			if (vector.get(i) > max) {
+				max = vector.get(i);
+				indMax = i;
+			}
+		}
+		
+		return indMax;
 	}
 
 	/**

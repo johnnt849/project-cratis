@@ -49,34 +49,42 @@ public class GCN {
 		Integer[] trainMask = getTrainMask(graph);
 		Integer[] valMask = getValMask(graph.size(), trainMask);
 
+		List<Vertex> trainPoints = new ArrayList<Vertex>(trainMask.length);
+		List<Vertex> valPoints = new ArrayList<Vertex>(valMask.length);
+		for (int ind: trainMask) trainPoints.add(graph.get(ind));
+		for (int ind: valMask) valPoints.add(graph.get(ind));
+
+		System.out.println(Integer.toString(valPoints.size()) + " VAL SIZ");
+
 		// Forward pass
 		for (int i = 0; i < numIters; i++) {
 			forwardProp(graph);
 			
 			if (i % 50 == 0) {
-				double error = calcTotalError(graph, valMask);
-				System.out.println("Total error for iteration " + Integer.toString(i) + ": " + Double.toString(error));
+				double error = calcTotalError(valPoints);
+				double acc = accuracy(valPoints);
+				System.out.println("Iteration " + Integer.toString(i+1) + ": loss - " + Double.toString(error) + ", acc - " + Double.toString(acc));
+
+				
 			}
 
-			List<Vertex> trainPoints = new ArrayList<Vertex>(trainMask.length);
-			for (int ind: trainMask) trainPoints.add(graph.get(ind));
 			List<Matrix> updates = backProp(trainPoints);
 
 			//PRINT UPDATES
-			int layer = 0;
-			for (Matrix m: updates) {
-				System.out.println("UPDATES TO LAYER " + Integer.toString(layer));
-				for (int x = 0; x < m.size(); x++) {
-					for (int y = 0; y < m.get(x).size(); y++) {
-						System.out.print(Double.toString(m.get(x).get(y)) + " ");
-					}
-					System.out.println();
-				}
-				System.out.println();
-				layer++;
-			}
+			//int layer = 0;
+			//for (Matrix m: updates) {
+			//	System.out.println("UPDATES TO LAYER " + Integer.toString(layer));
+			//	for (int x = 0; x < m.size(); x++) {
+			//		for (int y = 0; y < m.get(x).size(); y++) {
+			//			System.out.print(Double.toString(m.get(x).get(y)) + " ");
+			//		}
+			//		System.out.println();
+			//	}
+			//	System.out.println();
+			//	layer++;
+			//}
 
-			weights.forEach(w -> System.out.println(w.toString()));
+			//weights.forEach(w -> System.out.println(w.toString()));
 
 			graph.forEach(v -> v.resetAfterIteration());;
 
@@ -172,7 +180,7 @@ public class GCN {
 	private void forwardProp(ArrayList<Vertex> graph) {
 		for (int i = 0; i < weights.size(); i++) {
 			propagateForwardOneLayer(graph, i);
-			printActivations(graph, i+1);
+			//printActivations(graph, i+1);
 		}
 
 //		System.out.println("\nSOFTMAX PREDICTIONS");
@@ -304,7 +312,7 @@ public class GCN {
 
 			for (int j = 0; j < weightUpdates.size(); j++) {
 				Vector scaledUpdates = VectorFunctions.multiplyByScalar(eta, weightUpdates.get(j));
-				Vector updatedRow = VectorFunctions.sumVectors(w.get(j), scaledUpdates);
+				Vector updatedRow = VectorFunctions.subtractVectors(w.get(j), scaledUpdates);
 				w.set(j, updatedRow);
 			}
 
@@ -326,14 +334,31 @@ public class GCN {
 	* @param ArrayList<Vertex> graph		The list of all Vertex
 	* @param Integer[] mask					The indices of vertices to use
 	*/
-	private double calcTotalError(ArrayList<Vertex> graph, Integer[] mask) {
+	private double calcTotalError(List<Vertex> mask) {
 		double error = 0;
-		for (Integer ind: mask) {
-			Vertex v = graph.get(ind);
+		for (Vertex v: mask) {
 			error += calcError(v.getCurrentActivations(), v.getClassification());
 		}
 
-		return error / mask.length;
+		return error / mask.size();
+	}
+
+	/**
+	* Calculate the accuracy of the current neural network as the total number of correct
+	* predictions divided by the total number of points in the mask
+	* 
+	* @param List<Vertex> mask		list of vertices in the mask
+	*/
+	private double accuracy(List<Vertex> mask) {
+		double correct = 0;
+		for (Vertex v: mask) {
+			Vector preds = VectorFunctions.softmax(v.getCurrentActivations());
+			int prediction = VectorFunctions.argmax(preds);
+
+			if (prediction == v.getClassification()) correct++;
+		}
+
+		return correct / mask.size();
 	}
 
 	/**
