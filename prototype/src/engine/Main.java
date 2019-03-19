@@ -17,7 +17,7 @@ public class Main {
 
 		GCN cn = new GCN(graph, 2, 1);
 
-		int numIters = 100;
+		int numIters = 1000;
 		cn.run(graph, numIters);
 	}
 }

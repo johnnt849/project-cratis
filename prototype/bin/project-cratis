@@ -4,4 +4,4 @@
 cd $(dirname "$0")/../classes
 
 
-java engine.Main ../res/zkc_feats2 ../res/zkc_edges
+java engine.Main ../res/zkc_feats ../res/zkc_edges

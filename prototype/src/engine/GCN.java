@@ -60,7 +60,7 @@ public class GCN {
 		for (int i = 0; i < numIters; i++) {
 			forwardProp(graph);
 			
-			if (i % 10 == 0) {
+			if (i % 100 == 0) {
 				double error = calcTotalError(valPoints);
 				double acc = accuracy(valPoints);
 				System.out.println("Iteration " + Integer.toString(i+1) + ": loss - " + Double.toString(error) + ", acc - " + Double.toString(acc));
