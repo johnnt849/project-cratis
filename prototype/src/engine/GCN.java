@@ -30,9 +30,9 @@ public class GCN {
 	public GCN(ArrayList<Vertex> g, int nMaps, int chunks) {
 		graph = g;
 		weights = new ArrayList<Weights>(3);
-		weights.add(new Weights("../res/weights0"));
-		weights.add(new Weights("../res/weights1"));
-		weights.add(new Weights("../res/weights2"));
+		weights.add(new Weights(34, 8));
+		weights.add(new Weights(8, 4));
+		weights.add(new Weights(4, 2));
 
 		nMappers = nMaps;
 		chunkSize = chunks;
@@ -60,7 +60,7 @@ public class GCN {
 		for (int i = 0; i < numIters; i++) {
 			forwardProp(graph);
 			
-			if (i % 50 == 0) {
+			if (i % 10 == 0) {
 				double error = calcTotalError(valPoints);
 				double acc = accuracy(valPoints);
 				System.out.println("Iteration " + Integer.toString(i+1) + ": loss - " + Double.toString(error) + ", acc - " + Double.toString(acc));
