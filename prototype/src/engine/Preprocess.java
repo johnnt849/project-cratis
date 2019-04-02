@@ -1,13 +1,13 @@
 package engine;
 
+import data.Vertex;
+import util.Vector;
+import util.VectorImpl;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-
-import data.Vertex;
-import util.Vector;
-import util.VectorImpl;
 
 public class Preprocess {
 	/**
@@ -35,7 +35,9 @@ public class Preprocess {
 			addEdges(ebr, g);
 			ebr.close();
 		} catch (IOException e) {
-			System.err.println("FILE NOT FOUND");
+			// System.err.println("FILE NOT FOUND");
+			System.err.println(e.getMessage());
+			// e.printStackTrace();
 		}
 
 		for (Vertex v: g) v.setNormalization(); // set normalization for each vertex

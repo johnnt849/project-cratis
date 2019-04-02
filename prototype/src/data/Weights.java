@@ -1,15 +1,13 @@
 package data;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.lang.Math;
-import java.util.ArrayList;
-
 import util.Matrix;
 import util.MatrixImpl;
 import util.Vector;
 import util.VectorImpl;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class Weights {
 	int rows;
@@ -70,7 +68,9 @@ public class Weights {
 	
 			br.close();
 		} catch(IOException e) {
-			System.err.println("File not found");
+			// System.err.println("File not found");
+			System.err.println(e.getMessage());
+			// e.printStackTrace();
 		}
 
 		rows = wmT.get(0).size();
